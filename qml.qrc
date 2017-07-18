@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/calqlatr/calqlatr.qml</file>
+        <file>qml/calqlatr/content/Button.qml</file>
+        <file>qml/calqlatr/content/calculator.js</file>
+        <file>qml/calqlatr/content/Display.qml</file>
+        <file>qml/calqlatr/content/NumberPad.qml</file>
+        <file>qml/calqlatr/content/images/paper-edge-left.png</file>
+        <file>qml/calqlatr/content/images/paper-edge-right.png</file>
+        <file>qml/calqlatr/content/images/paper-grip.png</file>
+    </qresource>
+</RCC>
