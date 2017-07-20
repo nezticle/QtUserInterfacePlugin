@@ -87,6 +87,7 @@ void UIRenderer::setDevice(ID3D11Device *device)
 
 void UIRenderer::render()
 {
+    m_mutex.lock();
     if (m_isReady) {
         m_renderControl->polishItems();
         m_renderControl->sync();
@@ -98,6 +99,7 @@ void UIRenderer::render()
     } else {
         m_framebuffer.fill(Qt::magenta);
     }
+    m_mutex.unlock();
 }
 
 void UIRenderer::updateTexture()
@@ -105,7 +107,9 @@ void UIRenderer::updateTexture()
     ID3D11DeviceContext* ctx = nullptr;
     m_device->GetImmediateContext(&ctx);
     // Update texture data
+    m_mutex.lock();
     ctx->UpdateSubresource(m_textureHandle, 0, nullptr, m_framebuffer.constBits(), m_textureSize.width() * 4, 0);
+    m_mutex.unlock();
     ctx->Release();
 }
 
@@ -156,6 +160,18 @@ bool UIRenderer::loadQML(const QString &qmlFile)
 
     errorLog.close();
     return true;
+}
+
+void UIRenderer::sendGeneratedTouchEvent(QEvent *event)
+{
+    if (!m_isReady || !m_offscreenWindow) {
+        delete event;
+        return;
+    }
+
+    QWindow *window = qobject_cast<QWindow*>(m_offscreenWindow);
+    if (window)
+        QGuiApplication::postEvent(window, event);
 }
 
 void UIRenderer::triggerUpdate()

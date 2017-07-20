@@ -7,6 +7,7 @@
 #include <QtCore/QDebug>
 #include <QtGui/QGuiApplication>
 #include <QtQuick/QQuickWindow>
+#include <QtGui/QMouseEvent>
 
 static IUnityInterfaces* s_UnityInterfaces = nullptr;
 static IUnityGraphics* s_Graphics = nullptr;
@@ -113,4 +114,26 @@ void UpdateQtEventLoop()
 void SetTimeFromUnity(float time)
 {
     s_uiRenderer->setUnityTime(time);
+}
+
+
+
+void RegisterTouchStartEvent(float x, float y, int touchpoint)
+{
+    auto touchEvent = new QMouseEvent(QEvent::MouseButtonPress, QPointF(x * s_uiRenderer->textureSize().width(), y * s_uiRenderer->textureSize().height()), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+    s_uiRenderer->sendGeneratedTouchEvent(touchEvent);
+
+}
+
+void RegisterTouchEndEvent(float x, float y, int touchpoint)
+{
+    auto touchEvent = new QMouseEvent(QEvent::MouseButtonRelease, QPointF(x * s_uiRenderer->textureSize().width(), y * s_uiRenderer->textureSize().height()), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+    s_uiRenderer->sendGeneratedTouchEvent(touchEvent);
+}
+
+void RegisterTouchMoveEvent(float x, float y, int touchpoint)
+{
+    auto touchEvent = new QMouseEvent(QEvent::MouseMove, QPointF(x * s_uiRenderer->textureSize().width(), y * s_uiRenderer->textureSize().height()), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+    s_uiRenderer->sendGeneratedTouchEvent(touchEvent);
+
 }

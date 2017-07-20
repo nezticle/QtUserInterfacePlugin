@@ -4,7 +4,9 @@
 #include <QtCore/QObject>
 #include <QtCore/QSize>
 #include <QtGui/QImage>
+#include <QtGui/QTouchEvent>
 #include <QtCore/QBasicTimer>
+#include <QtCore/QMutex>
 #include <d3d11.h>
 
 class QQuickRenderControl;
@@ -12,6 +14,7 @@ class QQuickWindow;
 class QQmlEngine;
 class QQmlComponent;
 class QQuickItem;
+
 
 class UIRenderer : public QObject
 {
@@ -35,6 +38,8 @@ public:
     void updateTexture();
 
     bool loadQML(const QString &qmlFile);
+
+    void sendGeneratedTouchEvent(QEvent *event);
 signals:
 
 public slots:
@@ -57,6 +62,7 @@ private:
 
     bool m_isUpdatePending;
     QBasicTimer m_updateTimer;
+    QMutex m_mutex;
 
     // QObject interface
 protected:
