@@ -9,6 +9,9 @@
 #include <QtCore/QMutex>
 #include <d3d11.h>
 
+class QOpenGLContext;
+class QOpenGLFramebufferObject;
+class QOffscreenSurface;
 class QQuickRenderControl;
 class QQuickWindow;
 class QQmlEngine;
@@ -21,6 +24,7 @@ class UIRenderer : public QObject
     Q_OBJECT
 public:
     explicit UIRenderer(const QSize &textureSize, ID3D11Texture2D *textureHandle, RenderDispatcher *dispatcher);
+    ~UIRenderer();
 
     float unityTime() const;
     void setUnityTime(float unityTime);
@@ -46,7 +50,10 @@ private:
     QImage m_framebuffer;
 
     // Render Control
+    QOpenGLContext *m_context;
+    QOffscreenSurface *m_offscreenSurface;
     QQuickRenderControl *m_renderControl;
+    QOpenGLFramebufferObject *m_fbo;
     QQuickWindow *m_offscreenWindow;
     QQmlEngine *m_qmlEngine;
     QQmlComponent *m_qmlComponent;
