@@ -1,5 +1,6 @@
 #include "qtuserinterfaceplugin.h"
 #include "uirenderer.h"
+#include "renderdispatcher.h"
 
 #include <d3d11.h>
 #include "Unity/IUnityGraphicsD3D11.h"
@@ -16,7 +17,7 @@ static QGuiApplication *s_qtApp;
 char arg0[] = "UnityUI";
 char* argv[] = { &arg0[0], NULL };
 int argc = (int)(sizeof(argv) / sizeof(argv[0])) - 1;
-static UIRenderer *s_uiRenderer = nullptr;
+static RenderDispatcher *s_renderDispatcher = nullptr;
 
 static void UNITY_INTERFACE_API
     OnGraphicsDeviceEvent(UnityGfxDeviceEventType eventType)
@@ -28,7 +29,9 @@ static void UNITY_INTERFACE_API
             s_RendererType = s_Graphics->GetRenderer();
             if (s_RendererType == kUnityGfxRendererD3D11) {
                 IUnityGraphicsD3D11* d3d = s_UnityInterfaces->Get<IUnityGraphicsD3D11>();
-                s_uiRenderer->setDevice(d3d->GetDevice());
+                if (s_renderDispatcher)
+                    delete s_renderDispatcher;
+                s_renderDispatcher = new RenderDispatcher(d3d->GetDevice());
             }
             break;
         }
@@ -51,9 +54,9 @@ static void UNITY_INTERFACE_API
 static void UNITY_INTERFACE_API
     OnRenderEvent(int eventID)
 {
-    Q_UNUSED(eventID)
     //rendering code...
-    s_uiRenderer->updateTexture();
+    Q_ASSERT(s_renderDispatcher);
+    s_renderDispatcher->updateTexture(eventID);
 }
 
 static void UNITY_INTERFACE_API
@@ -67,7 +70,6 @@ void UnityPluginLoad(IUnityInterfaces *unityInterfaces)
 {
     s_qtApp = new QGuiApplication(argc, &argv[0]);
     QQuickWindow::setSceneGraphBackend(QSGRendererInterface::Software);
-    s_uiRenderer = new UIRenderer();
     s_UnityInterfaces = unityInterfaces;
     s_Graphics = unityInterfaces->Get<IUnityGraphics>();
     s_Graphics->RegisterDeviceEventCallback(OnGraphicsDeviceEvent);
@@ -81,10 +83,15 @@ void UnityPluginUnload()
 {
     s_qtApp->quit();
     s_qtApp->processEvents();
-    delete s_uiRenderer;
+    delete s_renderDispatcher;
     delete s_qtApp;
     s_qtApp = nullptr;
     s_Graphics->UnregisterDeviceEventCallback(OnGraphicsDeviceEvent);
+}
+
+void UpdateQtEventLoop()
+{
+    s_qtApp->processEvents();
 }
 
 UnityRenderingEvent GetRenderEventFunc()
@@ -97,43 +104,34 @@ UnityRenderingEventAndData GetRenderEventAndDataFunc()
     return OnRenderEventAndData;
 }
 
-void SetTextureFromUnity(void *textureHandle, int width, int height)
+void SetTextureFromUnity(int objectId, void *textureHandle, int width, int height)
 {
     // A script calls this at initialization time; just remember the texture pointer here.
     // Will update texture pixels each frame from the plugin rendering event (texture update
     // needs to happen on the rendering thread).
-    s_uiRenderer->setTextureHandle((ID3D11Texture2D*)textureHandle);
-    s_uiRenderer->setTextureSize(QSize(width, height));
+    Q_ASSERT(s_renderDispatcher);
+    s_renderDispatcher->addWindow(objectId, QSize(width, height), (ID3D11Texture2D*)textureHandle);
 }
 
-void UpdateQtEventLoop()
+void RegisterTouchStartEvent(int objectId, float x, float y, int touchpoint)
 {
-    s_qtApp->processEvents();
+    Q_ASSERT(s_renderDispatcher);
+    s_renderDispatcher->dispatchTouchStartEvent(objectId, x, y, touchpoint);
 }
 
-void SetTimeFromUnity(float time)
+void RegisterTouchEndEvent(int objectId, float x, float y, int touchpoint)
 {
-    s_uiRenderer->setUnityTime(time);
+    Q_ASSERT(s_renderDispatcher);
+    s_renderDispatcher->dispatchTouchEndEvent(objectId, x, y, touchpoint);
 }
 
-
-
-void RegisterTouchStartEvent(float x, float y, int touchpoint)
+void RegisterTouchMoveEvent(int objectId, float x, float y, int touchpoint)
 {
-    auto touchEvent = new QMouseEvent(QEvent::MouseButtonPress, QPointF(x * s_uiRenderer->textureSize().width(), y * s_uiRenderer->textureSize().height()), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
-    s_uiRenderer->sendGeneratedTouchEvent(touchEvent);
-
+    Q_ASSERT(s_renderDispatcher);
+    s_renderDispatcher->dispatchTouchMoveEvent(objectId, x, y, touchpoint);
 }
 
-void RegisterTouchEndEvent(float x, float y, int touchpoint)
+void RemoveUIObject(int objectId)
 {
-    auto touchEvent = new QMouseEvent(QEvent::MouseButtonRelease, QPointF(x * s_uiRenderer->textureSize().width(), y * s_uiRenderer->textureSize().height()), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
-    s_uiRenderer->sendGeneratedTouchEvent(touchEvent);
-}
-
-void RegisterTouchMoveEvent(float x, float y, int touchpoint)
-{
-    auto touchEvent = new QMouseEvent(QEvent::MouseMove, QPointF(x * s_uiRenderer->textureSize().width(), y * s_uiRenderer->textureSize().height()), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
-    s_uiRenderer->sendGeneratedTouchEvent(touchEvent);
-
+    s_renderDispatcher->removeWindow(objectId);
 }

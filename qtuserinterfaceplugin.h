@@ -18,11 +18,11 @@ UnityRenderingEventAndData UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API GetRenderE
 // Qt Related
 void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UpdateQtEventLoop();
 
-void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetTimeFromUnity(float time);
-void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetTextureFromUnity(void *textureHandle, int width, int height);
-void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API RegisterTouchStartEvent(float x, float y, int touchpoint);
-void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API RegisterTouchEndEvent(float x, float y, int touchpoint);
-void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API RegisterTouchMoveEvent(float x, float y, int touchpoint);
+void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetTextureFromUnity(int objectId, void *textureHandle, int width, int height);
+void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API RemoveUIObject(int objectId);
+void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API RegisterTouchStartEvent(int objectId, float x, float y, int touchpoint);
+void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API RegisterTouchEndEvent(int objectId, float x, float y, int touchpoint);
+void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API RegisterTouchMoveEvent(int objectId, float x, float y, int touchpoint);
 
 
 

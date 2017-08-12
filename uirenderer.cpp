@@ -1,4 +1,5 @@
 #include "uirenderer.h"
+#include "renderdispatcher.h"
 #include <QtQuick/QQuickRenderControl>
 #include <QtQuick/QQuickWindow>
 #include <QtQml/QQmlEngine>
@@ -9,12 +10,12 @@
 #include <QFile>
 #include <QTextStream>
 
-UIRenderer::UIRenderer(QObject *parent)
-    : QObject(parent)
+UIRenderer::UIRenderer(const QSize &textureSize, ID3D11Texture2D *textureHandle, RenderDispatcher *dispatcher)
+    : QObject(dispatcher)
     , m_unityTime(0.0f)
-    , m_textureSize(512, 512)
-    , m_textureHandle(nullptr)
-    , m_device(nullptr)
+    , m_textureSize(textureSize)
+    , m_textureHandle(textureHandle)
+    , m_device(dispatcher->device())
     , m_framebuffer(m_textureSize, QImage::Format_ARGB32_Premultiplied)
     , m_qmlComponent(nullptr)
     , m_rootItem(nullptr)
@@ -25,7 +26,7 @@ UIRenderer::UIRenderer(QObject *parent)
     m_renderControl = new QQuickRenderControl(this);
     m_offscreenWindow = new QQuickWindow(m_renderControl);
     m_offscreenWindow->setGeometry(0, 0, m_textureSize.width(), m_textureSize.height());
-    m_qmlEngine = new QQmlEngine;
+    m_qmlEngine = dispatcher->qmlEngine();
     if (!m_qmlEngine->incubationController())
         m_qmlEngine->setIncubationController(m_offscreenWindow->incubationController());
 
@@ -63,26 +64,6 @@ void UIRenderer::setTextureSize(const QSize &textureSize)
         }
         m_offscreenWindow->setGeometry(0, 0, m_textureSize.width(), m_textureSize.height());
     }
-}
-
-ID3D11Texture2D *UIRenderer::textureHandle() const
-{
-    return m_textureHandle;
-}
-
-void UIRenderer::setTextureHandle(ID3D11Texture2D *textureHandle)
-{
-    m_textureHandle = textureHandle;
-}
-
-ID3D11Device *UIRenderer::device() const
-{
-    return m_device;
-}
-
-void UIRenderer::setDevice(ID3D11Device *device)
-{
-    m_device = device;
 }
 
 void UIRenderer::render()

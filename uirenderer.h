@@ -14,13 +14,13 @@ class QQuickWindow;
 class QQmlEngine;
 class QQmlComponent;
 class QQuickItem;
-
+class RenderDispatcher;
 
 class UIRenderer : public QObject
 {
     Q_OBJECT
 public:
-    explicit UIRenderer(QObject *parent = nullptr);
+    explicit UIRenderer(const QSize &textureSize, ID3D11Texture2D *textureHandle, RenderDispatcher *dispatcher);
 
     float unityTime() const;
     void setUnityTime(float unityTime);
@@ -28,19 +28,12 @@ public:
     QSize textureSize() const;
     void setTextureSize(const QSize &textureSize);
 
-    ID3D11Texture2D *textureHandle() const;
-    void setTextureHandle(ID3D11Texture2D *textureHandle);
-
-    ID3D11Device *device() const;
-    void setDevice(ID3D11Device *device);
-
     void render();
     void updateTexture();
 
     bool loadQML(const QString &qmlFile);
 
     void sendGeneratedTouchEvent(QEvent *event);
-signals:
 
 public slots:
     void triggerUpdate();
