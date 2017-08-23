@@ -11,6 +11,8 @@
 #include <QtGui/QOffscreenSurface>
 #include <QtGui/QOpenGLFunctions>
 
+#include <QtCore/QDateTime>
+
 #include <QFile>
 #include <QTextStream>
 
@@ -26,6 +28,8 @@ UIRenderer::UIRenderer(const QSize &textureSize, ID3D11Texture2D *textureHandle,
     , m_isReady(false)
     , m_isUpdatePending(false)
 {
+    logError("test!");
+
     m_framebuffer.fill(Qt::transparent);
     QSurfaceFormat format;
     format.setDepthBufferSize(16);
@@ -34,6 +38,9 @@ UIRenderer::UIRenderer(const QSize &textureSize, ID3D11Texture2D *textureHandle,
     m_context = new QOpenGLContext(this);
     m_context->setFormat(format);
     bool contextCreated = m_context->create();
+    if (!contextCreated) {
+        logError("OpenGLContext Creation failed");
+    }
     Q_ASSERT(contextCreated);
 
     m_offscreenSurface = new QOffscreenSurface;
@@ -49,6 +56,9 @@ UIRenderer::UIRenderer(const QSize &textureSize, ID3D11Texture2D *textureHandle,
         m_qmlEngine->setIncubationController(m_offscreenWindow->incubationController());
 
     bool isCurrent = m_context->makeCurrent(m_offscreenSurface);
+    if (!isCurrent) {
+        logError("OpenGL Context MakeCurrent failed");
+    }
     Q_ASSERT(isCurrent);
 
 
@@ -111,7 +121,8 @@ void UIRenderer::render()
 {
     m_mutex.lock();
     if (m_isReady) {
-        m_context->makeCurrent(m_offscreenSurface);
+        if (!m_context->makeCurrent(m_offscreenSurface))
+            logError("failed to makeCurrent");
         m_renderControl->polishItems();
         m_renderControl->sync();
         m_renderControl->render();
@@ -139,9 +150,7 @@ void UIRenderer::updateTexture()
 
 bool UIRenderer::loadQML(const QString &qmlFile)
 {
-    QFile errorLog("error.log");
-    errorLog.open(QFile::WriteOnly | QFile::Truncate);
-    QTextStream errorOutput(&errorLog);
+
     if (m_qmlComponent != nullptr)
         delete m_qmlComponent;
     m_qmlComponent = new QQmlComponent(m_qmlEngine, QUrl(qmlFile), QQmlComponent::PreferSynchronous);
@@ -149,9 +158,9 @@ bool UIRenderer::loadQML(const QString &qmlFile)
     if (m_qmlComponent->isError()) {
         const QList<QQmlError> errorList = m_qmlComponent->errors();
         for (const QQmlError &error : errorList)
-            errorOutput << error.url().toString() << error.line() << error.toString();
+            logError(QString(error.url().toString() + error.line() + error.toString()));
         Q_ASSERT(false);
-        errorLog.close();
+
         return false;
     }
 
@@ -159,18 +168,16 @@ bool UIRenderer::loadQML(const QString &qmlFile)
     if (m_qmlComponent->isError()) {
         const QList<QQmlError> errorList = m_qmlComponent->errors();
         for (const QQmlError &error : errorList)
-            errorOutput << error.url().toString() << error.line() << error.toString();
+            logError(QString(error.url().toString() + error.line() + error.toString()));
         Q_ASSERT(false);
-        errorLog.close();
         return false;
     }
 
     m_rootItem = qobject_cast<QQuickItem *>(rootObject);
     if (!m_rootItem) {
-        errorOutput << "run: Not a QQuickItem";
+        logError("run: Not a QQuickItem");
         delete rootObject;
         Q_ASSERT(false);
-        errorLog.close();
         return false;
     }
 
@@ -182,7 +189,6 @@ bool UIRenderer::loadQML(const QString &qmlFile)
 
     m_offscreenWindow->setGeometry(0, 0, m_textureSize.width(), m_textureSize.height());
 
-    errorLog.close();
     return true;
 }
 
@@ -205,6 +211,15 @@ void UIRenderer::triggerUpdate()
         m_updateTimer.start(exhaustDelay, Qt::PreciseTimer, this);
         m_isUpdatePending = true;
     }
+}
+
+void UIRenderer::logError(const QString &error)
+{
+    QFile errorLog("error.log");
+    errorLog.open(QFile::WriteOnly | QFile::Append);
+    QTextStream errorOutput(&errorLog);
+    errorOutput << QDateTime::currentDateTime().toString() << "\t" << error << "\r\n";
+    errorLog.close();
 }
 
 void UIRenderer::timerEvent(QTimerEvent *event)

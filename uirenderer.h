@@ -43,6 +43,8 @@ public slots:
     void triggerUpdate();
 
 private:
+    static void logError(const QString &error);
+
     float m_unityTime;
     QSize m_textureSize;
     ID3D11Texture2D* m_textureHandle;
