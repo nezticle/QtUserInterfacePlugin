@@ -69,7 +69,7 @@ static void UNITY_INTERFACE_API
 void UnityPluginLoad(IUnityInterfaces *unityInterfaces)
 {
     s_qtApp = new QGuiApplication(argc, &argv[0]);
-    QQuickWindow::setSceneGraphBackend(QSGRendererInterface::Software);
+    QQuickWindow::setSceneGraphBackend(QSGRendererInterface::OpenGL);
     s_UnityInterfaces = unityInterfaces;
     s_Graphics = unityInterfaces->Get<IUnityGraphics>();
     s_Graphics->RegisterDeviceEventCallback(OnGraphicsDeviceEvent);

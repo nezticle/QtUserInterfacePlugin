@@ -128,8 +128,8 @@ void UIRenderer::render()
         m_renderControl->render();
         m_context->functions()->glFlush();
         m_framebuffer = m_fbo->toImage();
-        static int imageCounter = 0;
-        m_framebuffer.save(QString("image" + QString::number(imageCounter++) + ".png"));
+//        static int imageCounter = 0;
+//        m_framebuffer.save(QString("image" + QString::number(imageCounter++) + ".png"));
         m_context->doneCurrent();
     } else {
         m_framebuffer.fill(Qt::magenta);
