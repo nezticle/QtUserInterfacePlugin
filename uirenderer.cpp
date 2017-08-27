@@ -22,7 +22,7 @@ UIRenderer::UIRenderer(const QSize &textureSize, ID3D11Texture2D *textureHandle,
     , m_textureSize(textureSize)
     , m_textureHandle(textureHandle)
     , m_device(dispatcher->device())
-    , m_framebuffer(m_textureSize, QImage::Format_ARGB32_Premultiplied)
+    , m_currentFramebuffer(0)
     , m_qmlComponent(nullptr)
     , m_rootItem(nullptr)
     , m_isReady(false)
@@ -30,7 +30,11 @@ UIRenderer::UIRenderer(const QSize &textureSize, ID3D11Texture2D *textureHandle,
 {
     logError("test!");
 
-    m_framebuffer.fill(Qt::transparent);
+    m_framebuffer[0] = QImage(m_textureSize, QImage::Format_ARGB32_Premultiplied);
+    m_framebuffer[1] = QImage(m_textureSize, QImage::Format_ARGB32_Premultiplied);
+    m_framebuffer[0].fill(Qt::transparent);
+    m_framebuffer[1].fill(Qt::transparent);
+
     QSurfaceFormat format;
     format.setDepthBufferSize(16);
     format.setStencilBufferSize(8);
@@ -119,7 +123,7 @@ void UIRenderer::setTextureSize(const QSize &textureSize)
 
 void UIRenderer::render()
 {
-    m_mutex.lock();
+
     if (m_isReady) {
         if (!m_context->makeCurrent(m_offscreenSurface))
             logError("failed to makeCurrent");
@@ -127,13 +131,15 @@ void UIRenderer::render()
         m_renderControl->sync();
         m_renderControl->render();
         m_context->functions()->glFlush();
-        m_framebuffer = m_fbo->toImage();
+        m_framebuffer[!m_currentFramebuffer] = m_fbo->toImage();
 //        static int imageCounter = 0;
 //        m_framebuffer.save(QString("image" + QString::number(imageCounter++) + ".png"));
         m_context->doneCurrent();
     } else {
-        m_framebuffer.fill(Qt::magenta);
+        m_framebuffer[!m_currentFramebuffer].fill(Qt::magenta);
     }
+    m_mutex.lock();
+    m_currentFramebuffer = !m_currentFramebuffer;
     m_mutex.unlock();
 }
 
@@ -143,7 +149,7 @@ void UIRenderer::updateTexture()
     m_device->GetImmediateContext(&ctx);
     // Update texture data
     m_mutex.lock();
-    ctx->UpdateSubresource(m_textureHandle, 0, nullptr, m_framebuffer.constBits(), m_textureSize.width() * 4, 0);
+    ctx->UpdateSubresource(m_textureHandle, 0, nullptr, m_framebuffer[m_currentFramebuffer].constBits(), m_textureSize.width() * 4, 0);
     m_mutex.unlock();
     ctx->Release();
 }

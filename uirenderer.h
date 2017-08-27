@@ -49,7 +49,8 @@ private:
     QSize m_textureSize;
     ID3D11Texture2D* m_textureHandle;
     ID3D11Device* m_device;
-    QImage m_framebuffer;
+    QImage m_framebuffer[2];
+    int m_currentFramebuffer;
 
     // Render Control
     QOpenGLContext *m_context;

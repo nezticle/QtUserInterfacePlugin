@@ -135,3 +135,8 @@ void RemoveUIObject(int objectId)
 {
     s_renderDispatcher->removeWindow(objectId);
 }
+
+void UpdateAnimations(float time)
+{
+    s_renderDispatcher->updateAnimationTime(time);
+}

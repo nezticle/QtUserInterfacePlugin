@@ -17,6 +17,7 @@ UnityRenderingEventAndData UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API GetRenderE
 
 // Qt Related
 void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UpdateQtEventLoop();
+void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UpdateAnimations(float time);
 
 void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetTextureFromUnity(int objectId, void *textureHandle, int width, int height);
 void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API RemoveUIObject(int objectId);

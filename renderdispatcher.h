@@ -8,6 +8,7 @@
 
 class UIRenderer;
 class QQmlEngine;
+class UnityAnimationDriver;
 
 class RenderDispatcher : public QObject
 {
@@ -27,6 +28,7 @@ public:
     void dispatchTouchMoveEvent(int objectId, float x, float y, int touchpoint);
 
     void updateTexture(int objectId);
+    void updateAnimationTime(float time);
 
     ID3D11Device *device() const;
     QQmlEngine *qmlEngine() const;
@@ -35,6 +37,7 @@ private:
     ID3D11Device *m_device;
     QQmlEngine *m_qmlEngine;
     QHash<int, UIRenderer*> m_windows;
+    UnityAnimationDriver *m_animationDriver;
 };
 
 #endif // RENDERDISPATCHER_H

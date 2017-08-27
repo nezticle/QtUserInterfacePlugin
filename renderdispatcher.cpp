@@ -1,13 +1,16 @@
 #include "renderdispatcher.h"
 #include "uirenderer.h"
+#include "unityanimationdriver.h"
 #include <QEvent>
 #include <QtQml/QQmlEngine>
 
 RenderDispatcher::RenderDispatcher(ID3D11Device *device, QObject *parent)
     : QObject(parent)
     , m_device(device)
+    , m_animationDriver(new UnityAnimationDriver())
 {
     m_qmlEngine = new QQmlEngine;
+    m_animationDriver->install();
 }
 
 RenderDispatcher::~RenderDispatcher()
@@ -15,6 +18,8 @@ RenderDispatcher::~RenderDispatcher()
     for (auto value : m_windows.values())
         delete value;
     delete m_qmlEngine;
+    m_animationDriver->uninstall();
+    delete m_animationDriver;
 }
 
 void RenderDispatcher::addWindow(int id, const QSize &size, ID3D11Texture2D *textureHandle)
@@ -63,6 +68,12 @@ void RenderDispatcher::dispatchTouchMoveEvent(int objectId, float x, float y, in
 void RenderDispatcher::updateTexture(int objectId)
 {
     m_windows[objectId]->updateTexture();
+}
+
+void RenderDispatcher::updateAnimationTime(float time)
+{
+    // time is in seconds since last update
+    m_animationDriver->appendDelta(time);
 }
 
 ID3D11Device *RenderDispatcher::device() const
