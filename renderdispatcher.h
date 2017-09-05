@@ -20,7 +20,7 @@ public:
     void addWindow(int id, const QSize &size, ID3D11Texture2D* textureHandle);
     void removeWindow(int id);
 
-    void setQmlSource(int objectId, const QUrl &qmlSource);
+    void setQmlSource(int objectId, const QString &qmlSource);
     void setIsVisible(int objectId, bool isVisible);
 
     void dispatchTouchStartEvent(int objectId, float x, float y, int touchpoint);

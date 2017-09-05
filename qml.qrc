@@ -8,5 +8,6 @@
         <file>qml/calqlatr/content/images/paper-edge-left.png</file>
         <file>qml/calqlatr/content/images/paper-edge-right.png</file>
         <file>qml/calqlatr/content/images/paper-grip.png</file>
+        <file>qml/dummy.qml</file>
     </qresource>
 </RCC>

@@ -157,16 +157,18 @@ void UIRenderer::updateTexture()
 bool UIRenderer::loadQML(const QString &qmlFile)
 {
 
+    logError(QString("loading: " + qmlFile));
+    if (qmlFile.isEmpty())
+        return false;
+
     if (m_qmlComponent != nullptr)
         delete m_qmlComponent;
-    m_qmlComponent = new QQmlComponent(m_qmlEngine, QUrl(qmlFile), QQmlComponent::PreferSynchronous);
+    m_qmlComponent = new QQmlComponent(m_qmlEngine, qmlFile, QQmlComponent::PreferSynchronous);
 
     if (m_qmlComponent->isError()) {
         const QList<QQmlError> errorList = m_qmlComponent->errors();
         for (const QQmlError &error : errorList)
             logError(QString(error.url().toString() + error.line() + error.toString()));
-        Q_ASSERT(false);
-
         return false;
     }
 
@@ -175,7 +177,6 @@ bool UIRenderer::loadQML(const QString &qmlFile)
         const QList<QQmlError> errorList = m_qmlComponent->errors();
         for (const QQmlError &error : errorList)
             logError(QString(error.url().toString() + error.line() + error.toString()));
-        Q_ASSERT(false);
         return false;
     }
 
@@ -183,7 +184,6 @@ bool UIRenderer::loadQML(const QString &qmlFile)
     if (!m_rootItem) {
         logError("run: Not a QQuickItem");
         delete rootObject;
-        Q_ASSERT(false);
         return false;
     }
 

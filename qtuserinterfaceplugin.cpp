@@ -140,3 +140,9 @@ void UpdateAnimations(float time)
 {
     s_renderDispatcher->updateAnimationTime(time);
 }
+
+void SetQmlSourceFromUnity(int objectId, const char* qmlSource)
+{
+    auto qmlSourceString = QString::fromUtf8(qmlSource);
+    s_renderDispatcher->setQmlSource(objectId, qmlSourceString);
+}

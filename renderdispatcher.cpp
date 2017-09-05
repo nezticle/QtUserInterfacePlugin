@@ -34,9 +34,10 @@ void RenderDispatcher::removeWindow(int id)
     delete window;
 }
 
-void RenderDispatcher::setQmlSource(int objectId, const QUrl &qmlSource)
+void RenderDispatcher::setQmlSource(int objectId, const QString &qmlSource)
 {
-
+    auto target = m_windows[objectId];
+    target->loadQML(qmlSource);
 }
 
 void RenderDispatcher::setIsVisible(int objectId, bool isVisible)
